@@ -9,7 +9,7 @@ import os
 import requests
 
 FILE_ID = "1HmIIxX-KrX-o6JWuRnwE2iTh-SsUBZco"
-DEST_DIR = os.path.join(os.path.dirname(__file__), "data")
+DEST_DIR = os.path.join(os.path.dirname(__file__), "data/")
 DEST_FILENAME = "downloaded_file.json"
 CHUNK_SIZE = 32768
 

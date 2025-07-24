@@ -97,7 +97,7 @@ def truncate_json_by_accumulation(input_path: str, output_path: str) -> None:
 # —— MAIN ———————————————————————————————————————————
 def main():
     # Discover JSON in INPUT_DIR
-    files = glob.glob(os.path.join(INPUT_DIR, "*.json"))
+    files = glob.glob(os.path.join(INPUT_DIR, "downloaded_file.json"))
     if len(files) != 1:
         print(f"Error: Expected exactly one JSON in {INPUT_DIR}, found {len(files)}.", file=sys.stderr)
         sys.exit(1)
