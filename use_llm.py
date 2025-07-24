@@ -29,6 +29,7 @@ def analyze_json(file_path: str, model: str = "gpt-4.1-nano-2025-04-14") -> str:
         Task:  
         1. Parse the input JSON array of EndpointSecurity (ES) events.  
         2. Identify sequences or individual events that plausibly indicate malware or post-exploitation behaviour.
+        3. Give recommendations, possible artefacts to check and retrieve and a check list for a deeper investigation by a dedicated team.
 
         Context  
         - Event types present: exec, create, rename, unlink, tcc_modify, open, close, write, fork, exit, mount, unmount, signal, kextload, kextunload, cs_invalidated, proc_check.  
