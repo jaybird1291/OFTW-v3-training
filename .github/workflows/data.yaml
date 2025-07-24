@@ -1,0 +1,81 @@
+name: Fetch, Preprocess, and Analyze Data
+
+on: push
+permissions:
+  contents: write
+
+jobs:
+  fetch_data:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install gdown
+
+    - name: Fetch data from Google Drive
+      run: python fetch_data.py
+
+  preprocess_data:
+    runs-on: ubuntu-latest
+    needs: fetch_data
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install tqdm tiktoken
+
+    - name: Preprocess fetched data
+      run: python preprocess_data.py
+
+  analyze_data:
+    runs-on: ubuntu-latest
+    needs: preprocess_data
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        pip install openai
+
+    - name: Analyze preprocessed data with OpenAI API
+      env:
+        OPENAI: ${{ secrets.OPENAI }}
+      run: python use_llm.py
+
+    - name: Configure Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+    - name: Commit and push results
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add results.csv
+        git commit -m "Updated analysis results" || echo "No changes to commit"
+        git pull --rebase
+        git push
