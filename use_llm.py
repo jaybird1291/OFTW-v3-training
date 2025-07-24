@@ -19,14 +19,14 @@ def find_single_json_in_preprocessed_dir():
         raise RuntimeError(f"Multiple JSON files found in {PREPROCESSED_DIR}, expected only one.")
     return os.path.join(PREPROCESSED_DIR, files[0])
 
-def analyze_json(file_path: str, model: str = "gpt-4.1-nano-2025-04-14") -> str:
+def analyze_json(file_path: str, model: str = "gpt-4o") -> str:
     with open(file_path, "r", encoding="utf-8") as f:
         data_str = f.read()
 
     prompt = (
         f"""YOUR PROMPT
 
-        Task:  
+        Tasks:  
         1. Parse the input JSON array of EndpointSecurity (ES) events.  
         2. Identify sequences or individual events that plausibly indicate malware or post-exploitation behaviour.
         3. Give recommendations, possible artefacts to check and retrieve and a check list for a deeper investigation by a dedicated team.
