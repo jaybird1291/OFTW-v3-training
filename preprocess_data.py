@@ -15,8 +15,8 @@ from tqdm import tqdm
 
 # —— CONFIG ——————————————————————————————————————————
 MAX_TOKENS      = 50000
-INPUT_DIR       = os.path.join(os.path.dirname(__file__), "data")
-OUTPUT_DIR      = os.path.join(os.path.dirname(__file__), "data_preprocessed")
+INPUT_DIR       = os.path.join(os.path.dirname(__file__), "data/")
+OUTPUT_DIR      = os.path.join(os.path.dirname(__file__), "data_preprocessed/")
 OUTPUT_FILENAME = "short.json"
 
 # —— TOKENIZER —————————————————————————————————————
