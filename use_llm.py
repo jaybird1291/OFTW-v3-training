@@ -2,7 +2,7 @@ import os
 import csv
 from openai import OpenAI
 
-PREPROCESSED_DIR = 'data_preprocessed'   # same directory
+PREPROCESSED_DIR = os.path.join(BASE_DIR, 'data_preprocessed') # ← changed
 RESULTS_FILE = 'results.csv'
 
 api_key = os.getenv("OPENAI_API_KEY")
