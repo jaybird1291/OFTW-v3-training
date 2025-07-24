@@ -63,7 +63,7 @@ jobs:
 
     - name: Analyze preprocessed data with OpenAI API
       env:
-        OPENAI: ${{ secrets.OPENAI }}
+        OPENAI: ${{ secrets.OPENAI_API_KEY }}
       run: python use_llm.py
 
     - name: Configure Git
