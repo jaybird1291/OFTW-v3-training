@@ -19,14 +19,39 @@ def find_single_json_in_preprocessed_dir():
         raise RuntimeError(f"Multiple JSON files found in {PREPROCESSED_DIR}, expected only one.")
     return os.path.join(PREPROCESSED_DIR, files[0])
 
-def analyze_json(file_path: str, model: str = "gpt-4o") -> str:
+def analyze_json(file_path: str, model: str = "gpt-4.1-nano-2025-04-14") -> str:
     with open(file_path, "r", encoding="utf-8") as f:
         data_str = f.read()
 
     prompt = (
         f"""YOUR PROMPT
 
-        Here is the JSON to analyze:
+        Task:  
+        1. Parse the input JSON array of EndpointSecurity (ES) events.  
+        2. Identify sequences or individual events that plausibly indicate malware or post-exploitation behaviour.
+
+        Context  
+        - Event types present: exec, create, rename, unlink, tcc_modify, open, close, write, fork, exit, mount, unmount, signal, kextload, kextunload, cs_invalidated, proc_check.  
+        - Typical malicious clues include:  
+            - Unsigned or ad-hoc-signed binaries executed or kext-loaded.  
+            - Exec / write / rename in temporary, hidden, or user-library paths (`/tmp`, `/var/folders`, `~/Library/*/LaunchAgents`, etc.).  
+            - Rapid fork chains (“fork bombs”), unexpected `signal` storms, or `proc_check` failures.  
+            - `tcc_modify` denying transparency-consent or privacy prompts.  
+            - `mount` or `unmount` of disk images followed by `exec`.  
+            - `cs_invalidated` on running code or `kextunload` immediately after `kextload`.  
+            - Creation or unlinking of persistence files (LaunchAgents/Daemons, login hooks, cron, rc.plist).  
+        - Treat developer tools, Apple-signed code, and items in `/Applications` as low-risk unless combined with other red flags.
+        - List of typical malware behaviour / IOC to rely on:
+            - Silver Sparrow style: LaunchAgent under ~/Library/Application Support/ with “agent_updater”-like name; DMG mount → exec chain; binary self-deletes.  
+            - Shlayer style: “Flash Player” installer writes shell script to /private/tmp then launches via open; cleans up with unlink.  
+            - XLoader style: hidden java-child process in ~/Library/Containers/... ; key-logging and clipboard read; persistence via user LaunchAgent.  
+            - Adload style: ≥1 LaunchAgent **and** two LaunchDaemons, plus cron job; payload hidden in ~/Library/Application Support/<UUID>/<UUID>.  
+            - MacStealer style: exfil files staged in /var/folders/*/T/* then zipped and POSTed, directory removed afterwards.  
+            - TCC-bypass/ColdRoot: direct edits to TCC.db (tcc_modify) or cs_invalidated events on unsigned binaries touching privacy-protected resources.  
+            - 2024 backdoors: unsigned bundle in user Library with innocuous icon; spawns reverse-shell child after 30-120 s sleep.  
+            - Turtle (ransomware) pattern: burst of fork + write events (>500 files/min) followed by extension rename.  
+            - LaunchAgent/LaunchDaemon persistence (MITRE T1543.001/.004): new *.plist in /Library/LaunchDaemons or ~/Library/LaunchAgents with RunAtLoad=true.  
+            - Plist modification (MITRE T1647): sudden changes to Info.plist or LSEnvironment keys enabling hidden execution or dylib hijack.
         {data_str}
         """
     )
@@ -34,7 +59,7 @@ def analyze_json(file_path: str, model: str = "gpt-4o") -> str:
     completion = client.chat.completions.create(
         model=model,
         messages=[
-            {"role": "system", "content": "You are a cybersecurity analyst specialized in macOS malware detection."},
+            {"role": "system", "content": "You are an expert macOS incident-response analyst."},
             {"role": "user", "content": prompt}
         ]
     )
