@@ -3,9 +3,9 @@
 preprocess_data.py
 
 1) Download a public JSON file from Google Drive.
-2) Find that JSON in `preprocess_date/`.
+2) Find that JSON in preprocess_date/.
 3) Prune fields & truncate by token count.
-4) Emit `data_preprocessed/short.json` for downstream steps.
+4) Emit data_preprocessed/short.json for downstream steps.
 """
 import os
 import sys
@@ -15,15 +15,15 @@ import requests
 import tiktoken
 from tqdm import tqdm
 
-# —— CONFIG ———————————————————————————————————————
-FILE_ID        = "1HmIIxX-KrX-o6JWuRnwE2iTh-SsUBZco"
+# CONFIG
+FILE_ID        = "1HmIIxX-KrX-o6JWuRnwE2iTh-SsUBZco" # file-id of the sample from Martina Tivadar's training - ensure to change for yours
 INPUT_DIR      = os.path.join(os.path.dirname(__file__), "preprocess_date")
 OUTPUT_DIR     = os.path.join(os.path.dirname(__file__), "data_preprocessed")
 OUTPUT_FILE    = "short.json"
-MAX_TOKENS     = 190000
+MAX_TOKENS     = 190000 # for o4-mini - check the limit of your model
 CHUNK_SIZE     = 32768
 
-# —— GOOGLE DRIVE DOWNLOAD ——————————————————————————
+# GOOGLE DRIVE DOWNLOAD
 def get_confirm_token(resp: requests.Response) -> str:
     for k, v in resp.cookies.items():
         if k.startswith("download_warning"):
@@ -31,7 +31,7 @@ def get_confirm_token(resp: requests.Response) -> str:
     return None
 
 def save_stream(resp: requests.Response, dst: str):
-    os.makedirs(os.path.dirname(dst), exist_ok=True)  # ensure folder exists  [oai_citation:6‡Nkmk Note](https://note.nkmk.me/en/python-os-mkdir-makedirs/?utm_source=chatgpt.com)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)  # ensure folder exists 
     with open(dst, "wb") as f:
         for chunk in resp.iter_content(CHUNK_SIZE):
             if chunk:
@@ -46,12 +46,12 @@ def download_from_gdrive(file_id: str, dst: str):
     if token:
         r = sess.get(URL, params={"id": file_id, "confirm": token}, stream=True)
     save_stream(r, dst)
-    print(f"✔ Downloaded JSON to: {dst}")  # requests + streaming  [oai_citation:7‡docsaid.org](https://docsaid.org/en/blog/download-from-google-drive-using-python/?utm_source=chatgpt.com)
+    print(f"✔ Downloaded JSON to: {dst}")  # requests + streamings
 
-# —— TOKEN COUNTING & PRUNING ———————————————————————
+# TOKEN COUNTING & PRUNING
 def count_tokens(text: str) -> int:
     enc = tiktoken.get_encoding("cl100k_base")
-    return len(enc.encode(text))  # tiktoken usage  [oai_citation:8‡cookbook.openai.com](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken?utm_source=chatgpt.com)
+    return len(enc.encode(text))  # tiktoken usage 
 
 def prune_fields(item: dict) -> dict:
     """Return only the fields that are valuable for malware analysis."""
@@ -61,7 +61,7 @@ def prune_fields(item: dict) -> dict:
         "event_type": item.get("event_type"),
         "time":       item.get("time"),
 
-        # ---------- process ----------
+        # process
         "process": {
             "pid":                proc.get("pid"),
             "ppid":               proc.get("ppid"),
@@ -79,7 +79,7 @@ def prune_fields(item: dict) -> dict:
         },
     }
 
-    # ---------- file / fs events ----------
+    # file / fs events 
     ev = item.get("event", {})
     if "create" in ev:
         dst = ev["create"].get("destination", {}).get("existing_file", {})
@@ -126,7 +126,7 @@ def truncate_json(input_path: str, output_path: str):
     data.reverse()
 
     kept, total_tokens = [], 0
-    with tqdm(total=len(data), desc="Truncating…") as pbar:  # tqdm usage  [oai_citation:9‡GitHub](https://github.com/tqdm/tqdm?utm_source=chatgpt.com)
+    with tqdm(total=len(data), desc="Truncating...") as pbar:  # tqdm usage 
         for itm in data:
             pr = prune_fields(itm)
             s  = json.dumps(pr, separators=(",", ":"))
@@ -138,21 +138,21 @@ def truncate_json(input_path: str, output_path: str):
             pbar.update(1)
 
     kept.reverse()
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)  # ensure folder  [oai_citation:10‡Nkmk Note](https://note.nkmk.me/en/python-os-mkdir-makedirs/?utm_source=chatgpt.com)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)  # ensure folder
     with open(output_path, "w", encoding="utf-8") as out:
         json.dump(kept, out, separators=(",", ":"))
 
     print(f"\n✔ Wrote {len(kept)} entries ({total_tokens} tokens) to {output_path}")
 
-# —— MAIN ————————————————————————————————————————
+# MAIN
 def main():
     # 1) Download raw JSON
-    os.makedirs(INPUT_DIR, exist_ok=True)  # create if missing  [oai_citation:11‡Nkmk Note](https://note.nkmk.me/en/python-os-mkdir-makedirs/?utm_source=chatgpt.com)
+    os.makedirs(INPUT_DIR, exist_ok=True)  # create if missing
     raw_path = os.path.join(INPUT_DIR, "raw.json")
     download_from_gdrive(FILE_ID, raw_path)
 
     # 2) Locate the downloaded JSON dynamically
-    files = glob.glob(os.path.join(INPUT_DIR, "*.json"))  # find JSON  [oai_citation:12‡Nkmk Note](https://note.nkmk.me/en/python-glob-usage/?utm_source=chatgpt.com)
+    files = glob.glob(os.path.join(INPUT_DIR, "*.json"))  # find JSON
     if len(files) != 1:
         print(f"Error: expected exactly one JSON in {INPUT_DIR}, found {len(files)}", file=sys.stderr)
         sys.exit(1)

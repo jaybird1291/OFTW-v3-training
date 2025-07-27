@@ -11,12 +11,12 @@ jobs:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}   # expose the secret to every step
     steps:
       # 1  Source code
-      - uses: actions/checkout@v4                     # latest checkout action  [oai_citation:0‡GitHub Docs](https://docs.github.com/en/actions/tutorials/store-and-share-data?utm_source=chatgpt.com)
+      - uses: actions/checkout@v4                     # latest checkout action
 
       # 2  Python runtime
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.11"                      # use one interpreter for every script  [oai_citation:1‡GitHub Docs](https://docs.github.com/en/actions/how-tos/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs?utm_source=chatgpt.com)
+          python-version: "3.11"                      # use one interpreter for every script 
 
       # 3  Dependencies (one line = one cache miss)
       - name: Install Python packages
@@ -41,3 +41,4 @@ jobs:
           git commit -m "Update analysis results" || echo "Nothing to commit"
           git pull --rebase
           git push
+          
