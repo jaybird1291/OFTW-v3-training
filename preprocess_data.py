@@ -20,7 +20,7 @@ FILE_ID        = "1HmIIxX-KrX-o6JWuRnwE2iTh-SsUBZco"
 INPUT_DIR      = os.path.join(os.path.dirname(__file__), "preprocess_date")
 OUTPUT_DIR     = os.path.join(os.path.dirname(__file__), "data_preprocessed")
 OUTPUT_FILE    = "short.json"
-MAX_TOKENS     = 194000
+MAX_TOKENS     = 190000
 CHUNK_SIZE     = 32768
 
 # —— GOOGLE DRIVE DOWNLOAD ——————————————————————————
