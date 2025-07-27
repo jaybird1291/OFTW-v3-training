@@ -19,7 +19,7 @@ def find_single_json_in_preprocessed_dir():
         raise RuntimeError(f"Multiple JSON files found in {PREPROCESSED_DIR}, expected only one.")
     return os.path.join(PREPROCESSED_DIR, files[0])
 
-def analyze_json(file_path: str, model: str = "gpt-4o") -> str:
+def analyze_json(file_path: str, model: str = "o4-mini") -> str:
     with open(file_path, "r", encoding="utf-8") as f:
         data_str = f.read()
 
