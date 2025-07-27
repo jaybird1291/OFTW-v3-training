@@ -36,7 +36,7 @@ OFTW-v3-training/
 ```
 
 ## Prerequisites
-- macOS 12+
+- macOS 12+ VM (with UTM for example)
 - Python 3 (and pip)
 - LM Studio (local LLMs) or an OpenAI API key
 - GitHub repo with actions enabled (for CI/CD automation)
