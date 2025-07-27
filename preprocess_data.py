@@ -54,46 +54,68 @@ def count_tokens(text: str) -> int:
     return len(enc.encode(text))  # tiktoken usage  [oai_citation:8‡cookbook.openai.com](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken?utm_source=chatgpt.com)
 
 def prune_fields(item: dict) -> dict:
+    """Return only the fields that are valuable for malware analysis."""
+
+    proc = item.get("process", {})
     pr = {
         "event_type": item.get("event_type"),
         "time":       item.get("time"),
+
+        # ---------- process ----------
         "process": {
-            "signing_id":         item.get("process", {}).get("signing_id"),
-            "cdhash":             item.get("process", {}).get("cdhash"),
-            "team_id":            item.get("process", {}).get("team_id"),
-            "is_platform_binary": item.get("process", {}).get("is_platform_binary"),
-            "executable_path":    item.get("process", {}) \
-                                         .get("executable", {}) \
-                                         .get("path"),
-            "start_time":         item.get("process", {}).get("start_time"),
-            "ppid":               item.get("process", {}).get("ppid"),
-            "euid":               item.get("process", {}) \
-                                         .get("audit_token", {}) \
-                                         .get("euid"),
+            "pid":                proc.get("pid"),
+            "ppid":               proc.get("ppid"),
+            "start_time":         proc.get("start_time"),
+            "argv":               proc.get("arguments"),       # full command‑line
+            "executable_path":    proc.get("executable", {}).get("path"),
+            "uid":                proc.get("audit_token", {}).get("uid"),
+            "euid":               proc.get("audit_token", {}).get("euid"),
+            "gid":                proc.get("audit_token", {}).get("gid"),
+            "signing_id":         proc.get("signing_id"),
+            "cdhash":             proc.get("cdhash"),
+            "team_id":            proc.get("team_id"),
+            "is_platform_binary": proc.get("is_platform_binary"),
+            "image_uuid":         proc.get("image_uuid"),
         },
     }
+
+    # ---------- file / fs events ----------
     ev = item.get("event", {})
     if "create" in ev:
+        dst = ev["create"].get("destination", {}).get("existing_file", {})
         pr["event"] = {
             "create": {
-                "destination_path": ev["create"]
-                                         .get("destination", {})
-                                         .get("existing_file", {})
-                                         .get("path")
+                "destination_path": dst.get("path"),
+                "inode":            dst.get("inode"),
+                "mode":             dst.get("mode"),
+                "uid":              dst.get("uid"),
+                "gid":              dst.get("gid"),
             }
         }
     elif "rename" in ev:
+        src = ev["rename"].get("source", {})
+        dst = ev["rename"].get("destination", {}).get("existing_file", {})
         pr["event"] = {
             "rename": {
-                "source_path":      ev["rename"]
-                                         .get("source", {})
-                                         .get("path"),
-                "destination_path": ev["rename"]
-                                         .get("destination", {})
-                                         .get("existing_file", {})
-                                         .get("path"),
+                "source_path":      src.get("path"),
+                "destination_path": dst.get("path"),
+                "inode":            dst.get("inode"),
+                "mode":             dst.get("mode"),
+                "uid":              dst.get("uid"),
+                "gid":              dst.get("gid"),
             }
         }
+    elif "exec" in ev:          # keep exec details too
+        ex = ev["exec"].get("process", {})
+        pr["event"] = {
+            "exec": {
+                "target_path":      ex.get("executable", {}).get("path"),
+                "argv":             ex.get("arguments"),
+                "cs_flags":         ex.get("cs_flags"),
+                "signer_type":      ex.get("signer_type"),
+            }
+        }
+
     return pr
 
 def truncate_json(input_path: str, output_path: str):
